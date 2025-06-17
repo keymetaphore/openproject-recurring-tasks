@@ -15,8 +15,8 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 
 if OIDC_ENABLED:
-    app.add_middleware(SessionMiddleware, secret_key=SECRET_KEY, same_site="lax", https_only=False)
     app.add_middleware(AuthRequiredMiddleware)
+    app.add_middleware(SessionMiddleware, secret_key=SECRET_KEY)
 
 app.include_router(auth_routes.router)
 app.include_router(task_views.router)
