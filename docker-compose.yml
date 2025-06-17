@@ -1,0 +1,8 @@
+services:
+  task-scheduler:
+    build: .
+    env_file: .env
+    ports:
+      - "${SERVICE_PORT}:8000"
+    volumes:
+      - ./data:/data

@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Edit Task</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #f9f9fb;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+
+        header {
+            display: flex;
+            align-items: center;
+            background-color: #0d1117;
+            color: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        header img {
+            width: 40px;
+            height: 40px;
+            margin-right: 1rem;
+        }
+
+        header h1 {
+            font-size: 1.5rem;
+        }
+
+        main {
+            max-width: 720px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+            animation: fadeIn 0.4s ease;
+        }
+
+        h2 {
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            color: #4f46e5;
+        }
+
+        label {
+            font-weight: 600;
+            display: block;
+            margin-top: 1rem;
+        }
+
+        input {
+            width: 100%;
+            padding: 0.5rem;
+            margin-top: 0.3rem;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+        }
+
+        button {
+            background-color: #4f46e5;
+            color: white;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 1.5rem;
+            margin-right: 1rem;
+            transition: background-color 0.2s ease;
+        }
+
+        button:hover {
+            background-color: #4338ca;
+        }
+
+        a {
+            color: #4f46e5;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+
+    <link rel="stylesheet" href="https://unpkg.com/trix@2.0.0/dist/trix.css">
+    <script src="https://unpkg.com/trix@2.0.0/dist/trix.umd.min.js"></script>
+</head>
+<body>
+
+<header>
+    <img src="{{ app_logo_url }}" alt="Logo">
+    <h1>{{ app_name }}</h1>
+</header>
+
+<main>
+    <h2>Edit Task</h2>
+    <form method="post" action="/edit/{{ task.id }}">
+        <label>Title</label>
+        <input type="text" name="title" value="{{ task.title }}" required>
+
+        <label>Description</label>
+        <input id="desc" type="hidden" name="description" value="{{ task.description }}">
+        <trix-editor input="desc"></trix-editor>
+
+        <label>Cron Expression</label>
+        <input type="text" name="cron" value="{{ task.interval }}" required>
+
+        <label>Project ID</label>
+        <input type="text" name="project_id" value="{{ task.project_id }}" required>
+
+        <label>User ID (Assignee)</label>
+        <input type="text" name="user_id" value="{{ task.user_id }}" required>
+
+        <button type="submit">Save Changes</button>
+        <a href="/">Cancel</a>
+    </form>
+</main>
+
+</body>
+</html>

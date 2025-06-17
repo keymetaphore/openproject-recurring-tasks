@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Recurring Task Manager</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #f9f9fb;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+
+        header {
+            display: flex;
+            align-items: center;
+            background-color: #0d1117;
+            color: white;
+            padding: 1rem 0.6rem 0.6rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        header img {
+            width: 40px;
+            height: 40px;
+            margin-right: 1rem;
+        }
+
+        header h1 {
+            font-size: 1.5rem;
+        }
+
+        main {
+            max-width: 960px;
+            margin: 2rem auto;
+            padding: 1rem;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+        }
+
+        h2 {
+            margin-top: 2rem;
+            font-size: 1.3rem;
+            color: #4f46e5;
+        }
+
+        form {
+            margin-bottom: 2rem;
+        }
+
+        label {
+            font-weight: 600;
+        }
+
+        input {
+            width: 100%;
+            padding: 0.5rem;
+            margin-bottom: 1rem;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+        }
+
+        button {
+            background-color: #4f46e5;
+            color: white;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        button:hover {
+            background-color: #4338ca;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+            animation: fadeIn 0.6s ease;
+        }
+
+        th, td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        tr:hover {
+            background-color: #f0f4ff;
+            transition: background-color 0.3s;
+        }
+
+        .status-active { color: green; font-weight: bold; }
+        .status-suspended { color: red; font-weight: bold; }
+
+        .actions form {
+            display: inline;
+        }
+
+        .actions button {
+            margin-right: 4px;
+            background-color: #e2e8f0;
+            color: #111;
+            font-weight: 500;
+        }
+
+        .actions button:hover {
+            background-color: #cbd5e1;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+    <link rel="stylesheet" href="https://unpkg.com/trix@2.0.0/dist/trix.css">
+    <script src="https://unpkg.com/trix@2.0.0/dist/trix.umd.min.js"></script>
+
+</head>
+<body>
+
+<header>
+    <img src="{{ app_logo_url }}" alt="Logo">
+    <h1>{{ app_name }}</h1>
+</header>
+
+<main>
+    <form method="post" action="/create">
+        <h2>Create New Task</h2>
+        <label>Title</label>
+        <input type="text" name="title" required>
+
+        <label>Description</label>
+        <input id="desc" type="hidden" name="description">
+        <trix-editor input="desc"></trix-editor>
+
+        <label>Cron Expression</label>
+        <input type="text" name="cron" placeholder="e.g. 0 15 * * *" required>
+
+        <label>Project</label>
+        <select id="project-select" name="project_id" required>
+            <option value="" disabled selected>Loading...</option>
+        </select>
+
+        <label>Assignee</label>
+        <select id="user-select" name="user_id" required>
+            <option value="" disabled selected>Select a project first</option>
+        </select>
+
+        <button type="submit">Create</button>
+    </form>
+
+
+    <h2>Scheduled Tasks</h2>
+    {% if tasks %}
+        <table>
+            <tr>
+                <th>Title</th>
+                <th>Cron</th>
+                <th>Project</th>
+                <th>Assignee</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+            {% for task in tasks %}
+            <tr>
+                <td>{{ task.title }}</td>
+                <td><code>{{ task.cron }}</code></td>
+                <td>{{ task.project_id }}</td>
+                <td>{{ task.user_id }}</td>
+                <td>
+                    {% if task.status == "active" %}
+                        <span class="status-active">● Active</span>
+                    {% else %}
+                        <span class="status-suspended">● Suspended</span>
+                    {% endif %}
+                </td>
+                <td class="actions">
+                    <form method="get" action="/edit/{{ task.id }}">
+                        <button type="submit">✏️ Edit</button>
+                    </form>
+                    {% if task.status == "active" %}
+                    <form method="post" action="/suspend/{{ task.id }}" onsubmit="return confirm('Suspend this task?');">
+                        <button type="submit">⏸ Suspend</button>
+                    </form>
+                    {% else %}
+                    <form method="post" action="/resume/{{ task.id }}" onsubmit="return confirm('Resume this task?');">
+                        <button type="submit">▶️ Resume</button>
+                    </form>
+                    {% endif %}
+                    <form method="post" action="/delete/{{ task.id }}" onsubmit="return confirm('Delete this task permanently?');">
+                        <button type="submit">❌ Delete</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+    {% else %}
+        <p>No tasks scheduled yet.</p>
+    {% endif %}
+</main>
+<script>
+    async function loadProjectsAndUsers() {
+        const projectSelect = document.getElementById('project-select');
+        const userSelect = document.getElementById('user-select');
+
+        const projectRes = await fetch('/api/projects');
+        const projects = await projectRes.json();
+        projectSelect.innerHTML = '<option value="" disabled selected>Select a project</option>';
+        projects.forEach(project => {
+            const opt = document.createElement('option');
+            opt.value = project.id;
+            opt.textContent = project.name;
+            projectSelect.appendChild(opt);
+        });
+
+        projectSelect.addEventListener('change', async () => {
+            const projectId = projectSelect.value;
+            const userRes = await fetch(`/api/projects/${projectId}/users`);
+            const users = await userRes.json();
+            userSelect.innerHTML = '<option value="" disabled selected>Select a user</option>';
+            users.forEach(user => {
+                const opt = document.createElement('option');
+                opt.value = user.id;
+                opt.textContent = user.name;
+                userSelect.appendChild(opt);
+            });
+        });
+    }
+    loadProjectsAndUsers();
+</script>
+</body>
+</html>
