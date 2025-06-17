@@ -106,6 +106,6 @@ AI disclaimer: Part of this README and the user interface was generated using AI
 
 ## License
 
-BSD-3 License. See [`LICENSE`](LICENSE.md) for details.
+BSD-3 License. See [`LICENSE`](LICENSE) for details.
 
 Contact: Kevins17 <kevins17@lidmasina.lv>
