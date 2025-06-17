@@ -1,6 +1,6 @@
 import sqlite3
 from scheduler.scheduler import schedule_task
-from settings import DB_PATH, API_TOKEN, BASE_URL
+from settings import DB_PATH
 
 def initialize_db_and_schedule():
     conn = sqlite3.connect(DB_PATH)
@@ -11,6 +11,7 @@ def initialize_db_and_schedule():
         interval TEXT,
         project_id TEXT,
         user_id TEXT,
+        description TEXT,
         status TEXT DEFAULT 'active'
     )''')
 
